@@ -4,6 +4,8 @@ A hardware-inspired web interface for integrating an Akai MPK Mini Play with bro
 
 > This is an independent development project and is not affiliated with or endorsed by Akai Professional.
 
+![MPK Hardware Bridge virtual controller interface](docs/mpk-hardware-bridge.png)
+
 ## Live demo
 
 [Open MPK Hardware Bridge](https://midilab-virtual-controller.gloza.chatgpt.site)
