@@ -197,7 +197,14 @@ export function ControllerStoreProvider({ children }: { children: ReactNode }) {
     if (!hasCompleteSurface) {
       throw new Error("Invalid controller mapping");
     }
-    dispatch({ type: "LOAD_MAPPING", controls: parsed.controls });
+    // Normalize imports to the physical surface so older mappings cannot add
+    // controls that do not exist on the real unit.
+    const normalized = defaultControls.map((required) => ({
+      ...required,
+      ...parsed.controls?.find((control) => control.id === required.id),
+      active: false,
+    }));
+    dispatch({ type: "LOAD_MAPPING", controls: normalized });
   }, []);
 
   const value = useMemo(() => ({ state, dispatch, requestMidi, saveMapping, loadMapping }), [state, requestMidi, saveMapping, loadMapping]);

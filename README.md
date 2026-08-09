@@ -1,6 +1,6 @@
 # MIDILAB Virtual Controller
 
-A desktop-style React + TypeScript MIDI controller built on Vite/vinext. The top-down SVG surface includes 25 mini keys, eight drum pads, eight Q-Link knobs, a joystick, display, and utility buttons.
+A desktop-style React + TypeScript MIDI controller built on Vite/vinext. The top-down SVG surface includes 25 mini keys, eight drum pads, four parameter knobs, selector and volume dials, a joystick, display, and utility buttons.
 
 ## Features
 
@@ -50,7 +50,7 @@ app/
 
 - Keys: notes 48–72 on channel 1
 - Pads: notes 36–43 on channel 10
-- Knobs: CC 20–27 on channel 1
+- Parameter knobs, selector, and volume: CC 20–25 on channel 1
 - Joystick: CC 1 on channel 1
 - Octave/program/bank buttons: CC 110–115 on channel 1
 

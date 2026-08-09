@@ -8,14 +8,16 @@ const WHITE_KEY_W = 77;
 const JOYSTICK = { x: 88, y: 83, range: 20 };
 const KNOB_POSITIONS = [
   { x: 250, y: 66 }, { x: 380, y: 66 }, { x: 510, y: 66 }, { x: 640, y: 66 },
-  { x: 920, y: 70 }, { x: 1092, y: 70 }, { x: 806, y: 226 }, { x: 884, y: 226 },
+  { x: 920, y: 70 }, { x: 1092, y: 70 },
 ];
 
-function Knob({ control, x, y, compact = false }: { control: ControllerControl; x: number; y: number; compact?: boolean }) {
+function Knob({ control, x, y }: { control: ControllerControl; x: number; y: number }) {
   const { dispatch } = useControllerStore();
   const start = useRef<{ y: number; value: number } | null>(null);
   const angle = -140 + (control.value / 127) * 280;
-  const radius = compact ? 17 : 25;
+  const radius = control.label === "SELECT" || control.label === "VOLUME" ? 29 : 25;
+  const [primaryLabel, secondaryLabel] = control.label.split(" / ");
+  const isRightDial = control.label === "SELECT" || control.label === "VOLUME";
 
   return (
     <g
@@ -42,11 +44,15 @@ function Knob({ control, x, y, compact = false }: { control: ControllerControl; 
         if (event.key === "ArrowDown" || event.key === "ArrowLeft") dispatch({ type: "SET_VALUE", id: control.id, value: control.value - 1 });
       }}
     >
-      <text x={x} y={y - radius - 13} textAnchor="middle" className="hardware-label">{compact ? `Q${control.id.slice(-1)}` : control.label.replace("Q-LINK ", "CONTROL ")}</text>
+      {!isRightDial && <>
+        <text x={x} y={y - radius - 15} textAnchor="middle" className="hardware-label">{primaryLabel}</text>
+        <text x={x} y={y - radius - 7} textAnchor="middle" className="hardware-label hardware-label-red">{secondaryLabel}</text>
+      </>}
       <circle cx={x} cy={y + 3} r={radius + 3} className="knob-shadow" />
       <circle cx={x} cy={y} r={radius} className="knob-body" />
       <line x1={x} y1={y - radius * .43} x2={x} y2={y - radius * .86} className="knob-indicator" transform={`rotate(${angle} ${x} ${y})`} />
-      {!compact && <><text x={x - 34} y={y + radius + 12} className="knob-min">MIN</text><text x={x + 22} y={y + radius + 12} className="knob-min">MAX</text></>}
+      {control.label === "VOLUME" && <text x={x} y={y + radius + 15} textAnchor="middle" className="hardware-label">VOLUME</text>}
+      {!isRightDial && <><text x={x - 34} y={y + radius + 12} className="knob-min">MIN</text><text x={x + 22} y={y + radius + 12} className="knob-min">MAX</text></>}
     </g>
   );
 }
@@ -140,16 +146,19 @@ export function ControllerSvg() {
         })}
       </g>
 
-      {knobs.map((control, index) => <Knob key={control.id} control={control} {...KNOB_POSITIONS[index]} compact={index > 5} />)}
+      {knobs.slice(0, 6).map((control, index) => <Knob key={control.id} control={control} {...KNOB_POSITIONS[index]} />)}
 
       <g className="pads-group">
-        {pads.map((control, index) => {
-          const x = 190 + (index % 4) * 132;
-          const y = 118 + Math.floor(index / 4) * 103;
+        {Array.from({ length: 8 }, (_, slot) => {
+          // The physical unit places pads 5–8 above pads 1–4.
+          const control = pads[(slot + 4) % 8];
+          const x = 190 + (slot % 4) * 132;
+          const y = 118 + Math.floor(slot / 4) * 103;
+          const padNumber = control.id.replace("pad-", "");
           return <g key={control.id} className={`pad-control ${control.active ? "is-active" : ""}`} role="button" tabIndex={0} aria-label={`${control.label}, MIDI note ${control.midiNumber}`}
             onPointerDown={(event) => { event.currentTarget.setPointerCapture(event.pointerId); press(control); }} onPointerUp={() => release(control)} onPointerCancel={() => release(control)}
             onKeyDown={(event) => { if (event.key === " " || event.key === "Enter") press(control); }} onKeyUp={() => release(control)}>
-            <text x={x} y={y - 7} className="pad-top-label">PAD {index + 1}</text>
+            <text x={x} y={y - 7} className="pad-top-label">PAD {padNumber}</text>
             <rect x={x} y={y} width="112" height="77" rx="5" fill="url(#pad)" className="pad-rect" />
             <text x={x + 112} y={y - 7} textAnchor="end" className="pad-note-label">{control.label.replace("PAD", "NOTE")}</text>
           </g>;

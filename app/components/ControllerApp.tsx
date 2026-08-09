@@ -10,7 +10,7 @@ export function ControllerApp() {
       <main className="app-shell">
         <header className="topbar">
           <div className="wordmark"><span className="wordmark-icon">M</span><span>MIDILAB</span><small>CONTROL SURFACE</small></div>
-          <div className="topbar-meta"><span className="live-pill"><i /> LOCAL SESSION</span><span>25 KEYS · 8 PADS · 8 Q-LINKS</span></div>
+          <div className="topbar-meta"><span className="live-pill"><i /> LOCAL SESSION</span><span>25 KEYS · 8 PADS · 4 KNOBS · 2 DIALS</span></div>
         </header>
         <div className="workspace">
           <section className="stage" aria-label="MIDI controller surface">

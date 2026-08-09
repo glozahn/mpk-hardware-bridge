@@ -39,10 +39,17 @@ export const defaultControls: ControllerControl[] = [
     value: 0,
     active: false,
   })),
-  ...Array.from({ length: 8 }, (_, index) => ({
+  ...[
+    "FILTER / ATTACK",
+    "RESONANCE / RELEASE",
+    "REVERB AMT / EQ LOW",
+    "CHORUS AMT / EQ HIGH",
+    "SELECT",
+    "VOLUME",
+  ].map((label, index) => ({
     id: `knob-${index + 1}`,
     kind: "knob" as const,
-    label: `Q-LINK ${index + 1}`,
+    label,
     midiType: "cc" as const,
     midiNumber: 20 + index,
     channel: 1,

@@ -102,6 +102,7 @@ kbd { padding: 4px 6px; margin-right: 6px; border: 1px solid #34373b; border-rad
 
 /* Faithful compact-hardware details */
 .hardware-faithful .hardware-label { fill: #f1f1ef; font-size: 8px; font-weight: 800; letter-spacing: .02em; }
+.hardware-faithful .hardware-label-red { fill: #d52a34; font-size: 6px; }
 .hardware-faithful .joystick-stick { fill: url(#redStick); stroke: #ff5b61; stroke-width: 2.5; }
 .hardware-faithful .joystick-control.is-active .joystick-stick { fill: url(#redStick); }
 .hardware-faithful .knob-min { fill: #d0d1d0; font-size: 5px; font-weight: 700; }
