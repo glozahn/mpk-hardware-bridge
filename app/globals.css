@@ -70,8 +70,8 @@ kbd { padding: 4px 6px; margin-right: 6px; border: 1px solid #34373b; border-rad
 .joystick-control { cursor: grab; outline: none; touch-action: none; }
 .joystick-control.is-active { cursor: grabbing; }
 .joystick-stick { fill: #111315; stroke: #53575b; stroke-width: 2; transition: transform .08s ease-out, fill .12s, stroke .12s; pointer-events: none; }
-.joystick-control.is-active .joystick-stick { fill: #30383a; stroke: var(--mint); }
-.joystick-control:focus-visible .joystick-base { stroke: var(--mint); }
+.joystick-control.is-active .joystick-stick { stroke: #fff; filter: drop-shadow(0 0 5px rgba(231, 35, 45, .8)); }
+.joystick-control:focus-visible > circle:first-of-type { stroke: #8b8e91; }
 .display-shell { fill: #0d0f10; stroke: #35393c; stroke-width: 2; }
 .display-screen { fill: #13221f; stroke: #40544f; }
 .screen-kicker { fill: #6f9c8d; font-size: 8px; letter-spacing: .15em; }
@@ -99,6 +99,33 @@ kbd { padding: 4px 6px; margin-right: 6px; border: 1px solid #34373b; border-rad
 .key-label { fill: #76797b; font-size: 9px; }
 .black-key-label { fill: #777b7f; font-size: 7px; }
 .footer-mark { fill: #565b60; font-size: 9px; letter-spacing: .14em; }
+
+/* Faithful compact-hardware details */
+.hardware-faithful .hardware-label { fill: #f1f1ef; font-size: 8px; font-weight: 800; letter-spacing: .02em; }
+.hardware-faithful .knob-min { fill: #d0d1d0; font-size: 5px; font-weight: 700; }
+.hardware-faithful .knob-body { fill: #111214; stroke: #54575a; stroke-width: 2; }
+.hardware-faithful .knob-indicator { stroke: #f4f4f2; stroke-width: 3; }
+.hardware-faithful .utility-button { fill: #17191a; stroke: #55585b; stroke-width: 1.5; }
+.hardware-faithful .hardware-button.is-active .utility-button { fill: #d9232d; stroke: #ff646b; }
+.tiny-button-label { fill: #e14149; font-size: 6px; font-weight: 800; }
+.pad-top-label { fill: #e9e9e7; font-size: 7px; font-weight: 700; }
+.pad-note-label { fill: #d32a34; font-size: 6px; font-weight: 700; }
+.hardware-faithful .pad-rect { stroke: #681b21; stroke-width: 1.5; }
+.hardware-faithful .pad-control.is-active .pad-rect { fill: #d92834; stroke: #ff6b73; }
+.hardware-faithful .display-shell { fill: #090a0b; stroke: #4d5053; }
+.hardware-faithful .display-screen { fill: #d6ece7; stroke: #0d1111; }
+.hardware-faithful .screen-logo { fill: #182e35; font-size: 13px; font-weight: 950; font-style: italic; letter-spacing: -.08em; }
+.hardware-faithful .screen-main { fill: #25484b; font-size: 7px; }
+.akai-logo { fill: #f0f0ee; font-size: 27px; font-weight: 950; font-style: italic; letter-spacing: -.08em; }
+.akai-sub { fill: #f0f0ee; font-size: 7px; font-weight: 800; letter-spacing: .12em; }
+.mpk-logo { fill: #f0f0ee; font-size: 29px; font-weight: 800; letter-spacing: -.07em; }
+.keyboard-functions { fill: #e3e3e1; font-size: 6px; font-weight: 700; letter-spacing: .02em; }
+.hardware-faithful .white-key-shape { fill: #f4f3ef; stroke: #858789; stroke-width: 1.5; }
+.hardware-faithful .black-key-shape { fill: #111315; stroke: #333537; stroke-width: 2; }
+.hardware-faithful .key-label { fill: #b4b4b0; font-size: 7px; }
+.hardware-faithful .black-key-label { fill: #626568; font-size: 6px; }
+.hardware-faithful .white-key.is-active .white-key-shape { fill: #ffc9cd; }
+.hardware-faithful .black-key.is-active .black-key-shape { fill: #d6242e; }
 
 .inspector { min-height: calc(100vh - 68px); padding: 30px 24px 20px; border-left: 1px solid #292c2f; background: #101214; display: flex; flex-direction: column; gap: 22px; }
 .inspector-head { display: flex; align-items: flex-start; justify-content: space-between; border-bottom: 1px solid #282b2e; padding-bottom: 20px; }

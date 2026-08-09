@@ -4,13 +4,18 @@ import { useMemo, useRef, type PointerEvent as ReactPointerEvent } from "react";
 import { isBlackKey, type ControllerControl } from "../lib/controller-data";
 import { useControllerStore } from "../store/controller-store";
 
-const WHITE_KEY_W = 59;
-const WHITE_KEYS = 15;
+const WHITE_KEY_W = 77;
+const JOYSTICK = { x: 88, y: 83, range: 20 };
+const KNOB_POSITIONS = [
+  { x: 250, y: 66 }, { x: 380, y: 66 }, { x: 510, y: 66 }, { x: 640, y: 66 },
+  { x: 920, y: 70 }, { x: 1092, y: 70 }, { x: 806, y: 226 }, { x: 884, y: 226 },
+];
 
-function Knob({ control, x, y }: { control: ControllerControl; x: number; y: number }) {
+function Knob({ control, x, y, compact = false }: { control: ControllerControl; x: number; y: number; compact?: boolean }) {
   const { dispatch } = useControllerStore();
   const start = useRef<{ y: number; value: number } | null>(null);
   const angle = -140 + (control.value / 127) * 280;
+  const radius = compact ? 17 : 25;
 
   return (
     <g
@@ -30,19 +35,18 @@ function Knob({ control, x, y }: { control: ControllerControl; x: number; y: num
         if (!start.current) return;
         dispatch({ type: "SET_VALUE", id: control.id, value: start.current.value + Math.round((start.current.y - event.clientY) * 0.8) });
       }}
-      onPointerUp={() => {
-        start.current = null;
-        dispatch({ type: "RELEASE", id: control.id });
-      }}
+      onPointerUp={() => { start.current = null; dispatch({ type: "RELEASE", id: control.id }); }}
+      onPointerCancel={() => { start.current = null; dispatch({ type: "RELEASE", id: control.id }); }}
       onKeyDown={(event) => {
         if (event.key === "ArrowUp" || event.key === "ArrowRight") dispatch({ type: "SET_VALUE", id: control.id, value: control.value + 1 });
         if (event.key === "ArrowDown" || event.key === "ArrowLeft") dispatch({ type: "SET_VALUE", id: control.id, value: control.value - 1 });
       }}
     >
-      <circle cx={x} cy={y} r="29" className="knob-shadow" />
-      <circle cx={x} cy={y} r="24" className="knob-body" />
-      <line x1={x} y1={y - 10} x2={x} y2={y - 21} className="knob-indicator" transform={`rotate(${angle} ${x} ${y})`} />
-      <text x={x} y={y + 43} textAnchor="middle" className="control-label">{control.label.replace("Q-LINK ", "")}</text>
+      <text x={x} y={y - radius - 13} textAnchor="middle" className="hardware-label">{compact ? `Q${control.id.slice(-1)}` : control.label.replace("Q-LINK ", "CONTROL ")}</text>
+      <circle cx={x} cy={y + 3} r={radius + 3} className="knob-shadow" />
+      <circle cx={x} cy={y} r={radius} className="knob-body" />
+      <line x1={x} y1={y - radius * .43} x2={x} y2={y - radius * .86} className="knob-indicator" transform={`rotate(${angle} ${x} ${y})`} />
+      {!compact && <><text x={x - 34} y={y + radius + 12} className="knob-min">MIN</text><text x={x + 22} y={y + radius + 12} className="knob-min">MAX</text></>}
     </g>
   );
 }
@@ -54,23 +58,18 @@ export function ControllerSvg() {
   const pads = state.controls.filter((control) => control.kind === "pad");
   const knobs = state.controls.filter((control) => control.kind === "knob");
   const joystick = byId("joystick");
-  const joystickRange = 26;
-  const joystickX = (((joystick.xValue ?? 64) - 64) / 63) * joystickRange;
-  const joystickY = -(((joystick.yValue ?? 64) - 64) / 63) * joystickRange;
+  const joystickX = (((joystick.xValue ?? 64) - 64) / 63) * JOYSTICK.range;
+  const joystickY = -(((joystick.yValue ?? 64) - 64) / 63) * JOYSTICK.range;
   const whitePositions = useMemo(() => {
     let whiteIndex = 0;
-    return keys.map((control) => {
-      if (isBlackKey(control.label)) return null;
-      return whiteIndex++;
-    });
+    return keys.map((control) => isBlackKey(control.label) ? null : whiteIndex++);
   }, [keys]);
 
   const keyX = (index: number) => {
     let whiteBefore = 0;
     for (let i = 0; i < index; i++) if (!isBlackKey(keys[i].label)) whiteBefore++;
-    return isBlackKey(keys[index].label) ? whiteBefore * WHITE_KEY_W - 18 : whiteBefore * WHITE_KEY_W;
+    return whiteBefore * WHITE_KEY_W - 23;
   };
-
   const press = (control: ControllerControl, value = 127) => dispatch({ type: "SET_VALUE", id: control.id, value, active: true });
   const release = (control: ControllerControl) => dispatch({ type: "RELEASE", id: control.id });
   const moveJoystick = (event: ReactPointerEvent<SVGGElement>) => {
@@ -81,49 +80,35 @@ export function ControllerSvg() {
     point.x = event.clientX;
     point.y = event.clientY;
     const local = point.matrixTransform(matrix.inverse());
-    let dx = local.x - 98;
-    let dy = local.y - 182;
+    let dx = local.x - JOYSTICK.x;
+    let dy = local.y - JOYSTICK.y;
     const distance = Math.hypot(dx, dy);
-    if (distance > joystickRange) {
-      dx = (dx / distance) * joystickRange;
-      dy = (dy / distance) * joystickRange;
+    if (distance > JOYSTICK.range) {
+      dx = (dx / distance) * JOYSTICK.range;
+      dy = (dy / distance) * JOYSTICK.range;
     }
-    dispatch({
-      type: "SET_JOYSTICK",
-      xValue: 64 + (dx / joystickRange) * 63,
-      yValue: 64 - (dy / joystickRange) * 63,
-    });
+    dispatch({ type: "SET_JOYSTICK", xValue: 64 + (dx / JOYSTICK.range) * 63, yValue: 64 - (dy / JOYSTICK.range) * 63 });
   };
 
   return (
-    <svg className="controller-svg" viewBox="0 0 1220 680" role="img" aria-label="Interactive 25-key MIDI controller">
+    <svg className="controller-svg hardware-faithful" viewBox="0 0 1220 680" role="img" aria-label="Interactive MPK Mini Play style MIDI controller">
       <defs>
-        <linearGradient id="panel" x1="0" x2="0" y1="0" y2="1"><stop stopColor="#27292c" /><stop offset="1" stopColor="#141618" /></linearGradient>
-        <linearGradient id="pad" x1="0" x2="1" y1="0" y2="1"><stop stopColor="#363a3d" /><stop offset="1" stopColor="#202326" /></linearGradient>
-        <filter id="glow"><feGaussianBlur stdDeviation="5" result="b" /><feMerge><feMergeNode in="b" /><feMergeNode in="SourceGraphic" /></feMerge></filter>
+        <linearGradient id="panel" x1="0" x2="0" y1="0" y2="1"><stop stopColor="#292b2d" /><stop offset="1" stopColor="#17191a" /></linearGradient>
+        <linearGradient id="pad" x1="0" x2="1" y1="0" y2="1"><stop stopColor="#242628" /><stop offset="1" stopColor="#111314" /></linearGradient>
+        <radialGradient id="redStick"><stop offset="0" stopColor="#ff3b3e" /><stop offset=".75" stopColor="#e12029" /><stop offset="1" stopColor="#9c1118" /></radialGradient>
+        <pattern id="speakerHoles" width="13" height="13" patternUnits="userSpaceOnUse"><circle cx="3" cy="3" r="2.4" fill="#050606" /><circle cx="9.5" cy="9.5" r="2.4" fill="#050606" /></pattern>
+        <filter id="glow"><feGaussianBlur stdDeviation="4" result="b" /><feMerge><feMergeNode in="b" /><feMergeNode in="SourceGraphic" /></feMerge></filter>
       </defs>
-      <rect x="8" y="8" width="1204" height="664" rx="24" fill="url(#panel)" stroke="#3a3d40" strokeWidth="2" />
-      <rect x="21" y="21" width="1178" height="15" rx="7" fill="#d52530" />
-      <text x="44" y="75" className="brand-mark">MIDILAB</text>
-      <text x="44" y="96" className="brand-sub">MINI PLAY · 25</text>
 
-      <g
-        aria-label={`Joystick X ${joystick.xValue ?? 64}, Y ${joystick.yValue ?? 64}`}
-        aria-valuetext={`X ${joystick.xValue ?? 64}, Y ${joystick.yValue ?? 64}`}
-        className={`joystick-control ${joystick.active ? "is-active" : ""}`}
-        tabIndex={0}
-        role="slider"
-        onPointerDown={(event) => {
-          event.currentTarget.setPointerCapture(event.pointerId);
-          moveJoystick(event);
-        }}
-        onPointerMove={(event) => {
-          if (event.currentTarget.hasPointerCapture(event.pointerId)) moveJoystick(event);
-        }}
-        onPointerUp={(event) => {
-          event.currentTarget.releasePointerCapture(event.pointerId);
-          dispatch({ type: "CENTER_JOYSTICK" });
-        }}
+      <rect x="6" y="10" width="1208" height="658" rx="13" fill="url(#panel)" stroke="#404244" strokeWidth="2" />
+      <path d="M13 22 Q13 12 23 12 L28 12 L28 666 L15 661 Z" fill="#cf1f2a" />
+      <path d="M1207 22 Q1207 12 1197 12 L1192 12 L1192 666 L1205 661 Z" fill="#cf1f2a" />
+
+      <g aria-label={`Joystick X ${joystick.xValue ?? 64}, Y ${joystick.yValue ?? 64}`} aria-valuetext={`X ${joystick.xValue ?? 64}, Y ${joystick.yValue ?? 64}`}
+        className={`joystick-control ${joystick.active ? "is-active" : ""}`} tabIndex={0} role="slider"
+        onPointerDown={(event) => { event.currentTarget.setPointerCapture(event.pointerId); moveJoystick(event); }}
+        onPointerMove={(event) => { if (event.currentTarget.hasPointerCapture(event.pointerId)) moveJoystick(event); }}
+        onPointerUp={(event) => { event.currentTarget.releasePointerCapture(event.pointerId); dispatch({ type: "CENTER_JOYSTICK" }); }}
         onPointerCancel={() => dispatch({ type: "CENTER_JOYSTICK" })}
         onKeyDown={(event) => {
           const step = event.shiftKey ? 16 : 6;
@@ -132,99 +117,94 @@ export function ControllerSvg() {
           if (event.key === "ArrowUp") dispatch({ type: "SET_JOYSTICK", xValue: joystick.xValue ?? 64, yValue: (joystick.yValue ?? 64) + step });
           if (event.key === "ArrowDown") dispatch({ type: "SET_JOYSTICK", xValue: joystick.xValue ?? 64, yValue: (joystick.yValue ?? 64) - step });
           if (event.key === " " || event.key === "Enter") dispatch({ type: "CENTER_JOYSTICK" });
-        }}
-        onBlur={() => dispatch({ type: "CENTER_JOYSTICK" })}
-      >
-        <rect x="42" y="126" width="112" height="112" rx="18" className="recess" />
-        <circle cx="98" cy="182" r="37" className="joystick-base" />
-        <circle cx="98" cy="182" r="22" className="joystick-stick" transform={`translate(${joystickX} ${joystickY})`} />
-        <text x="98" y="257" textAnchor="middle" className="section-label">X / Y</text>
+        }} onBlur={() => dispatch({ type: "CENTER_JOYSTICK" })}>
+        <circle cx={JOYSTICK.x} cy={JOYSTICK.y} r="39" fill="#090a0b" stroke="#3d3f41" strokeWidth="3" />
+        <circle cx={JOYSTICK.x} cy={JOYSTICK.y} r="29" fill="url(#redStick)" stroke="#ff555a" strokeWidth="2" className="joystick-stick" transform={`translate(${joystickX} ${joystickY})`} />
+        <text x="88" y="137" textAnchor="middle" className="hardware-label">JOYSTICK</text>
       </g>
 
-      <g className="display-module" role="button" tabIndex={0} onClick={() => dispatch({ type: "SELECT", id: "display" })}>
-        <rect x="185" y="62" width="272" height="118" rx="12" className="display-shell" />
-        <rect x="201" y="77" width="240" height="87" rx="5" className="display-screen" />
-        <text x="218" y="103" className="screen-kicker">PROGRAM 01</text>
-        <text x="218" y="134" className="screen-main">{state.lastMessage}</text>
-        <rect x="218" y="146" width="132" height="3" rx="2" fill="#405b56" />
-        <rect x="218" y="146" width="76" height="3" rx="2" fill="#9bf5d0" />
+      <g className="arp-section">
+        <text x="86" y="165" textAnchor="middle" className="hardware-label">ARPEGGIATOR</text>
+        {["program-prev", "program-next", "octave-down", "octave-up", "bank-a", "bank-b"].map((id, index) => {
+          const control = byId(id);
+          const col = index % 2;
+          const row = Math.floor(index / 2);
+          const x = 34 + col * 63;
+          const y = 176 + row * 43;
+          const labels = ["ON / OFF", "TAP TEMPO", "OCT −", "OCT +", "FULL LEVEL", "NOTE REPEAT"];
+          return <g key={id} role="button" tabIndex={0} className={`hardware-button ${control.active ? "is-active" : ""}`}
+            onPointerDown={() => press(control)} onPointerUp={() => release(control)} onPointerLeave={() => release(control)}>
+            <rect x={x} y={y} width="53" height="28" rx="3" className="utility-button" />
+            <text x={x + 26.5} y={y + 17} textAnchor="middle" className="tiny-button-label">{labels[index]}</text>
+          </g>;
+        })}
       </g>
 
-      {knobs.map((control, index) => (
-        <Knob key={control.id} control={control} x={515 + (index % 4) * 91} y={91 + Math.floor(index / 4) * 112} />
-      ))}
+      {knobs.map((control, index) => <Knob key={control.id} control={control} {...KNOB_POSITIONS[index]} compact={index > 5} />)}
 
       <g className="pads-group">
         {pads.map((control, index) => {
-          const x = 900 + (index % 4) * 70;
-          const y = 65 + Math.floor(index / 4) * 92;
-          return (
-            <g key={control.id} className={`pad-control ${control.active ? "is-active" : ""}`} role="button" tabIndex={0} aria-label={`${control.label}, MIDI note ${control.midiNumber}`}
-              onPointerDown={(event) => { event.currentTarget.setPointerCapture(event.pointerId); press(control); }}
-              onPointerUp={() => release(control)} onPointerCancel={() => release(control)}
-              onKeyDown={(event) => { if (event.key === " " || event.key === "Enter") press(control); }} onKeyUp={() => release(control)}>
-              <rect x={x} y={y} width="58" height="68" rx="8" fill="url(#pad)" className="pad-rect" />
-              <text x={x + 29} y={y + 84} textAnchor="middle" className="control-label">{index + 1}</text>
-            </g>
-          );
+          const x = 190 + (index % 4) * 132;
+          const y = 118 + Math.floor(index / 4) * 103;
+          return <g key={control.id} className={`pad-control ${control.active ? "is-active" : ""}`} role="button" tabIndex={0} aria-label={`${control.label}, MIDI note ${control.midiNumber}`}
+            onPointerDown={(event) => { event.currentTarget.setPointerCapture(event.pointerId); press(control); }} onPointerUp={() => release(control)} onPointerCancel={() => release(control)}
+            onKeyDown={(event) => { if (event.key === " " || event.key === "Enter") press(control); }} onKeyUp={() => release(control)}>
+            <text x={x} y={y - 7} className="pad-top-label">PAD {index + 1}</text>
+            <rect x={x} y={y} width="112" height="77" rx="5" fill="url(#pad)" className="pad-rect" />
+            <text x={x + 112} y={y - 7} textAnchor="end" className="pad-note-label">{control.label.replace("PAD", "NOTE")}</text>
+          </g>;
         })}
       </g>
 
-      <g className="utility-buttons">
-        {["program-prev", "program-next", "bank-a", "bank-b"].map((id, index) => {
-          const control = byId(id);
-          const x = 186 + index * 67;
-          return (
-            <g key={id} role="button" tabIndex={0} className={control.active ? "is-active" : ""}
-              onPointerDown={() => press(control)} onPointerUp={() => release(control)} onPointerLeave={() => release(control)}>
-              <rect x={x} y="205" width="55" height="35" rx="6" className="utility-button" />
-              <text x={x + 27.5} y="227" textAnchor="middle" className="button-label">{control.label.replace("PROGRAM ", "PGM ")}</text>
-            </g>
-          );
+      <g className="display-module" role="button" tabIndex={0} onClick={() => dispatch({ type: "SELECT", id: "display" })}>
+        <rect x="744" y="42" width="140" height="57" rx="4" className="display-shell" />
+        <rect x="755" y="51" width="118" height="39" rx="2" className="display-screen" />
+        <text x="814" y="67" textAnchor="middle" className="screen-logo">MPK</text>
+        <text x="814" y="82" textAnchor="middle" className="screen-main">{String(byId("display").value).padStart(3, "0")} · CH 1</text>
+      </g>
+
+      <g className="center-buttons">
+        {["KEYS", "DRUMS", "FAVORITES", "INTERNAL", "PAD A/B", "KNOBS A/B"].map((label, index) => {
+          const x = 748 + (index % 2) * 68;
+          const y = 124 + Math.floor(index / 2) * 42;
+          return <g key={label}><rect x={x} y={y} width="52" height="27" rx="3" className="utility-button" /><text x={x + 26} y={y + 17} textAnchor="middle" className="tiny-button-label">{label}</text></g>;
         })}
       </g>
 
-      <g transform="translate(282 280)">
+      <text x="944" y="197" textAnchor="middle" className="akai-logo">AKAI</text>
+      <text x="944" y="212" textAnchor="middle" className="akai-sub">PROFESSIONAL</text>
+      <g className="speaker" aria-label="Speaker grille">
+        <circle cx="1090" cy="220" r="62" fill="#101112" stroke="#36383a" strokeWidth="3" />
+        <circle cx="1090" cy="220" r="51" fill="url(#speakerHoles)" />
+        <circle cx="1090" cy="220" r="6" fill="#0a0b0c" stroke="#323436" />
+      </g>
+
+      <text x="34" y="316" className="mpk-logo">MPK <tspan fontWeight="300">mini play</tspan></text>
+      <text x="28" y="335" className="keyboard-functions">1/4　　 1/4T　　 1/8　　 1/8T　　 1/16　　 1/16T　　 UP　 DOWN　 EXCL　 INCL　 ORDER　 RAND　 LATCH　 ARP OCT 1　 ARP OCT 2　 ARP OCT 3　 ARP OCT 4　 SWING</text>
+
+      <g transform="translate(30 342)">
         {keys.map((control, index) => {
           if (isBlackKey(control.label)) return null;
           const x = (whitePositions[index] ?? 0) * WHITE_KEY_W;
-          return (
-            <g key={control.id} className={`piano-key white-key ${control.active ? "is-active" : ""}`} role="button" tabIndex={0} aria-label={`${control.label}, MIDI note ${control.midiNumber}`}
-              onPointerDown={(event) => { event.currentTarget.setPointerCapture(event.pointerId); press(control); }} onPointerUp={() => release(control)} onPointerCancel={() => release(control)}
-              onKeyDown={(event) => { if (event.key === " " || event.key === "Enter") press(control); }} onKeyUp={() => release(control)}>
-              <rect x={x} y="0" width={WHITE_KEY_W - 2} height="336" rx="0 0 7 7" className="white-key-shape" />
-              <text x={x + 29} y="314" textAnchor="middle" className="key-label">{control.label}</text>
-            </g>
-          );
+          return <g key={control.id} className={`piano-key white-key ${control.active ? "is-active" : ""}`} role="button" tabIndex={0} aria-label={`${control.label}, MIDI note ${control.midiNumber}`}
+            onPointerDown={(event) => { event.currentTarget.setPointerCapture(event.pointerId); press(control); }} onPointerUp={() => release(control)} onPointerCancel={() => release(control)}
+            onKeyDown={(event) => { if (event.key === " " || event.key === "Enter") press(control); }} onKeyUp={() => release(control)}>
+            <rect x={x} y="0" width={WHITE_KEY_W - 2} height="308" className="white-key-shape" />
+            <text x={x + 38} y="292" textAnchor="middle" className="key-label">{control.label}</text>
+          </g>;
         })}
         {keys.map((control, index) => {
           if (!isBlackKey(control.label)) return null;
           const x = keyX(index);
-          return (
-            <g key={control.id} className={`piano-key black-key ${control.active ? "is-active" : ""}`} role="button" tabIndex={0} aria-label={`${control.label}, MIDI note ${control.midiNumber}`}
-              onPointerDown={(event) => { event.currentTarget.setPointerCapture(event.pointerId); press(control); }} onPointerUp={() => release(control)} onPointerCancel={() => release(control)}
-              onKeyDown={(event) => { if (event.key === " " || event.key === "Enter") press(control); }} onKeyUp={() => release(control)}>
-              <rect x={x} y="0" width="36" height="206" rx="0 0 6 6" className="black-key-shape" />
-              <text x={x + 18} y="188" textAnchor="middle" className="black-key-label">{control.label}</text>
-            </g>
-          );
+          return <g key={control.id} className={`piano-key black-key ${control.active ? "is-active" : ""}`} role="button" tabIndex={0} aria-label={`${control.label}, MIDI note ${control.midiNumber}`}
+            onPointerDown={(event) => { event.currentTarget.setPointerCapture(event.pointerId); press(control); }} onPointerUp={() => release(control)} onPointerCancel={() => release(control)}
+            onKeyDown={(event) => { if (event.key === " " || event.key === "Enter") press(control); }} onKeyUp={() => release(control)}>
+            <rect x={x} y="0" width="46" height="190" rx="0 0 4 4" className="black-key-shape" />
+            <text x={x + 23} y="174" textAnchor="middle" className="black-key-label">{control.label}</text>
+          </g>;
         })}
       </g>
-
-      <g className="octave-controls">
-        {["octave-down", "octave-up"].map((id, index) => {
-          const control = byId(id);
-          return (
-            <g key={id} role="button" tabIndex={0} onPointerDown={() => press(control)} onPointerUp={() => release(control)} onPointerLeave={() => release(control)}>
-              <rect x={52 + index * 99} y="326" width="84" height="44" rx="7" className={`octave-button ${control.active ? "is-active" : ""}`} />
-              <text x={94 + index * 99} y="353" textAnchor="middle" className="button-label">{index ? "OCT +" : "OCT −"}</text>
-            </g>
-          );
-        })}
-        <text x="141" y="397" textAnchor="middle" className="section-label">OCTAVE</text>
-      </g>
-      <text x="50" y="628" className="footer-mark">25-KEY USB MIDI CONTROLLER</text>
-      <circle cx="1170" cy="636" r="5" fill="#9bf5d0" filter="url(#glow)" />
+      <circle cx="1180" cy="316" r="4" fill="#d72731" filter="url(#glow)" />
     </svg>
   );
 }
