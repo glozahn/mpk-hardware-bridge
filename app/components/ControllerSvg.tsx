@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useRef } from "react";
+import { useMemo, useRef, type PointerEvent as ReactPointerEvent } from "react";
 import { isBlackKey, type ControllerControl } from "../lib/controller-data";
 import { useControllerStore } from "../store/controller-store";
 
@@ -53,6 +53,10 @@ export function ControllerSvg() {
   const keys = state.controls.filter((control) => control.kind === "key");
   const pads = state.controls.filter((control) => control.kind === "pad");
   const knobs = state.controls.filter((control) => control.kind === "knob");
+  const joystick = byId("joystick");
+  const joystickRange = 26;
+  const joystickX = (((joystick.xValue ?? 64) - 64) / 63) * joystickRange;
+  const joystickY = -(((joystick.yValue ?? 64) - 64) / 63) * joystickRange;
   const whitePositions = useMemo(() => {
     let whiteIndex = 0;
     return keys.map((control) => {
@@ -69,6 +73,27 @@ export function ControllerSvg() {
 
   const press = (control: ControllerControl, value = 127) => dispatch({ type: "SET_VALUE", id: control.id, value, active: true });
   const release = (control: ControllerControl) => dispatch({ type: "RELEASE", id: control.id });
+  const moveJoystick = (event: ReactPointerEvent<SVGGElement>) => {
+    const matrix = event.currentTarget.getScreenCTM();
+    const svg = event.currentTarget.ownerSVGElement;
+    if (!matrix || !svg) return;
+    const point = svg.createSVGPoint();
+    point.x = event.clientX;
+    point.y = event.clientY;
+    const local = point.matrixTransform(matrix.inverse());
+    let dx = local.x - 98;
+    let dy = local.y - 182;
+    const distance = Math.hypot(dx, dy);
+    if (distance > joystickRange) {
+      dx = (dx / distance) * joystickRange;
+      dy = (dy / distance) * joystickRange;
+    }
+    dispatch({
+      type: "SET_JOYSTICK",
+      xValue: 64 + (dx / joystickRange) * 63,
+      yValue: 64 - (dy / joystickRange) * 63,
+    });
+  };
 
   return (
     <svg className="controller-svg" viewBox="0 0 1220 680" role="img" aria-label="Interactive 25-key MIDI controller">
@@ -82,11 +107,37 @@ export function ControllerSvg() {
       <text x="44" y="75" className="brand-mark">MIDILAB</text>
       <text x="44" y="96" className="brand-sub">MINI PLAY · 25</text>
 
-      <g aria-label="Joystick" className={`joystick-control ${byId("joystick").active ? "is-active" : ""}`} tabIndex={0} role="slider"
-        onClick={() => press(byId("joystick"), byId("joystick").value === 127 ? 64 : 127)}>
+      <g
+        aria-label={`Joystick X ${joystick.xValue ?? 64}, Y ${joystick.yValue ?? 64}`}
+        aria-valuetext={`X ${joystick.xValue ?? 64}, Y ${joystick.yValue ?? 64}`}
+        className={`joystick-control ${joystick.active ? "is-active" : ""}`}
+        tabIndex={0}
+        role="slider"
+        onPointerDown={(event) => {
+          event.currentTarget.setPointerCapture(event.pointerId);
+          moveJoystick(event);
+        }}
+        onPointerMove={(event) => {
+          if (event.currentTarget.hasPointerCapture(event.pointerId)) moveJoystick(event);
+        }}
+        onPointerUp={(event) => {
+          event.currentTarget.releasePointerCapture(event.pointerId);
+          dispatch({ type: "CENTER_JOYSTICK" });
+        }}
+        onPointerCancel={() => dispatch({ type: "CENTER_JOYSTICK" })}
+        onKeyDown={(event) => {
+          const step = event.shiftKey ? 16 : 6;
+          if (event.key === "ArrowLeft") dispatch({ type: "SET_JOYSTICK", xValue: (joystick.xValue ?? 64) - step, yValue: joystick.yValue ?? 64 });
+          if (event.key === "ArrowRight") dispatch({ type: "SET_JOYSTICK", xValue: (joystick.xValue ?? 64) + step, yValue: joystick.yValue ?? 64 });
+          if (event.key === "ArrowUp") dispatch({ type: "SET_JOYSTICK", xValue: joystick.xValue ?? 64, yValue: (joystick.yValue ?? 64) + step });
+          if (event.key === "ArrowDown") dispatch({ type: "SET_JOYSTICK", xValue: joystick.xValue ?? 64, yValue: (joystick.yValue ?? 64) - step });
+          if (event.key === " " || event.key === "Enter") dispatch({ type: "CENTER_JOYSTICK" });
+        }}
+        onBlur={() => dispatch({ type: "CENTER_JOYSTICK" })}
+      >
         <rect x="42" y="126" width="112" height="112" rx="18" className="recess" />
         <circle cx="98" cy="182" r="37" className="joystick-base" />
-        <circle cx="98" cy="174" r="22" className="joystick-stick" />
+        <circle cx="98" cy="182" r="22" className="joystick-stick" transform={`translate(${joystickX} ${joystickY})`} />
         <text x="98" y="257" textAnchor="middle" className="section-label">X / Y</text>
       </g>
 

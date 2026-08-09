@@ -9,6 +9,8 @@ export type ControllerControl = {
   channel: number;
   value: number;
   active: boolean;
+  xValue?: number;
+  yValue?: number;
 };
 
 const KEY_NAMES = [
@@ -56,6 +58,8 @@ export const defaultControls: ControllerControl[] = [
     channel: 1,
     value: 64,
     active: false,
+    xValue: 64,
+    yValue: 64,
   },
   {
     id: "display",

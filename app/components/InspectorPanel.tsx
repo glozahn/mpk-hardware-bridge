@@ -30,7 +30,11 @@ export function InspectorPanel() {
       <section className="info-card">
         <div className="value-readout">
           <span>VALUE</span>
-          <strong>{String(control?.value ?? 0).padStart(3, "0")}</strong>
+          <strong>
+            {control?.kind === "joystick"
+              ? `${String(control.xValue ?? 64).padStart(3, "0")} / ${String(control.yValue ?? 64).padStart(3, "0")}`
+              : String(control?.value ?? 0).padStart(3, "0")}
+          </strong>
         </div>
         <input
           aria-label="Selected control value"
@@ -39,7 +43,14 @@ export function InspectorPanel() {
           max="127"
           value={control?.value ?? 0}
           disabled={!control || control.midiType === "system"}
-          onChange={(event) => control && dispatch({ type: "SET_VALUE", id: control.id, value: Number(event.target.value) })}
+          onChange={(event) => {
+            if (!control) return;
+            if (control.kind === "joystick") {
+              dispatch({ type: "SET_JOYSTICK", xValue: control.xValue ?? 64, yValue: Number(event.target.value) });
+            } else {
+              dispatch({ type: "SET_VALUE", id: control.id, value: Number(event.target.value) });
+            }
+          }}
           onPointerUp={() => control && dispatch({ type: "RELEASE", id: control.id })}
         />
       </section>

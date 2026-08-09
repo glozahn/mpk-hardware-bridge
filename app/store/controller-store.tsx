@@ -27,6 +27,8 @@ type ControllerState = {
 type Action =
   | { type: "SELECT"; id: string }
   | { type: "SET_VALUE"; id: string; value: number; active?: boolean }
+  | { type: "SET_JOYSTICK"; xValue: number; yValue: number }
+  | { type: "CENTER_JOYSTICK" }
   | { type: "RELEASE"; id: string }
   | { type: "SET_MIDI"; devices: MidiDevice[]; status: ControllerState["midiStatus"] }
   | { type: "SELECT_MIDI"; id: string }
@@ -53,6 +55,26 @@ function reducer(state: ControllerState, action: Action): ControllerState {
         control.id === action.id
           ? { ...control, value: Math.max(0, Math.min(127, action.value)), active: action.active ?? true }
           : control,
+      ),
+    };
+  }
+  if (action.type === "SET_JOYSTICK") {
+    const clamp = (value: number) => Math.max(0, Math.min(127, Math.round(value)));
+    return {
+      ...state,
+      selectedId: "joystick",
+      controls: state.controls.map((control) =>
+        control.id === "joystick"
+          ? { ...control, xValue: clamp(action.xValue), yValue: clamp(action.yValue), value: clamp(action.yValue), active: true }
+          : control,
+      ),
+    };
+  }
+  if (action.type === "CENTER_JOYSTICK") {
+    return {
+      ...state,
+      controls: state.controls.map((control) =>
+        control.id === "joystick" ? { ...control, xValue: 64, yValue: 64, value: 64, active: false } : control,
       ),
     };
   }

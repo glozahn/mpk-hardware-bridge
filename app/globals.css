@@ -67,8 +67,11 @@ kbd { padding: 4px 6px; margin-right: 6px; border: 1px solid #34373b; border-rad
 .button-label { fill: #aeb2b6; font-size: 8px; font-weight: 700; }
 .recess { fill: #101214; stroke: #33363a; }
 .joystick-base { fill: #25282b; stroke: #44484d; stroke-width: 2; }
-.joystick-stick { fill: #111315; stroke: #53575b; stroke-width: 2; transition: transform .15s, fill .15s; }
-.joystick-control.is-active .joystick-stick { transform: translate(8px, -8px); fill: #30383a; stroke: var(--mint); }
+.joystick-control { cursor: grab; outline: none; touch-action: none; }
+.joystick-control.is-active { cursor: grabbing; }
+.joystick-stick { fill: #111315; stroke: #53575b; stroke-width: 2; transition: transform .08s ease-out, fill .12s, stroke .12s; pointer-events: none; }
+.joystick-control.is-active .joystick-stick { fill: #30383a; stroke: var(--mint); }
+.joystick-control:focus-visible .joystick-base { stroke: var(--mint); }
 .display-shell { fill: #0d0f10; stroke: #35393c; stroke-width: 2; }
 .display-screen { fill: #13221f; stroke: #40544f; }
 .screen-kicker { fill: #6f9c8d; font-size: 8px; letter-spacing: .15em; }
