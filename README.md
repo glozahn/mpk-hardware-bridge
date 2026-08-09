@@ -1,57 +1,113 @@
-# MIDILAB Virtual Controller
+# MPK Hardware Bridge
 
-A desktop-style React + TypeScript MIDI controller built on Vite/vinext. The top-down SVG surface includes 25 mini keys, eight drum pads, four parameter knobs, selector and volume dials, a joystick, display, and utility buttons.
+A hardware-inspired web interface for integrating an Akai MPK Mini Play with browser-based music applications. It provides a responsive virtual control surface, real-time Web MIDI input, interactive controls, and editable MIDI mappings.
+
+> This is an independent development project and is not affiliated with or endorsed by Akai Professional.
+
+## Live demo
+
+[Open MPK Hardware Bridge](https://midilab-virtual-controller.gloza.chatgpt.site)
 
 ## Features
 
-- Every control has a stable ID, mapping, value, active state, and MIDI channel.
-- Keys and pads respond to pointer and keyboard input.
-- Knobs support vertical mouse/touch drag and arrow keys.
-- The inspector shows the selected control's note/CC, channel, label, and value.
-- Web MIDI device discovery and live Note On, Note Off, and CC handling.
-- JSON mapping export, validated import, and default reset.
-- Responsive dark hardware-inspired interface.
+- Hardware-inspired top-down controller layout
+- 25 interactive mini piano keys
+- Eight velocity-style drum pads
+- Four parameter knobs, selector dial, and volume dial
+- Two-axis joystick with natural pointer movement and automatic centering
+- Display, arpeggiator, octave, program, and bank controls
+- Individual ID, MIDI assignment, value, and active state for every control
+- Centralized reducer-based application state
+- Web MIDI input discovery and device selection
+- Real-time Note On, Note Off, and Control Change handling
+- Automatic UI highlighting when physical MIDI messages are received
+- Selected-control inspector with note/CC, channel, label, and value
+- JSON mapping import, export, validation, and reset
+- Pointer, keyboard, and touch-friendly interactions
+- Responsive dark desktop interface
 
-## Run locally
+## Tech stack
 
-Requires Node.js 22.13 or newer.
+- React
+- TypeScript
+- Vite / vinext
+- SVG
+- Web MIDI API
+- CSS
+
+## Requirements
+
+- Node.js 22.13 or newer
+- npm
+- A Web MIDI-compatible browser, such as Chrome or Edge, for hardware input
+- An Akai MPK Mini Play or another MIDI controller for physical integration
+
+## Getting started
+
+Clone the repository and install the dependencies:
 
 ```bash
+git clone https://github.com/glozahn/mpk-hardware-bridge.git
+cd mpk-hardware-bridge
 npm install
 npm run dev
 ```
 
-Open the local URL shown in the terminal (normally `http://localhost:3000`). Use Chrome or another browser with Web MIDI support if you want to connect hardware, then select **Enable Web MIDI** in the inspector.
+Open the local URL printed in the terminal, normally:
 
-## Build
+```text
+http://localhost:3000
+```
+
+Select **Enable Web MIDI**, grant browser permission, and choose the connected MIDI input from the inspector.
+
+## Production build
 
 ```bash
 npm run build
 ```
+
+## Default MIDI mapping
+
+| Control | Assignment | Channel |
+| --- | --- | --- |
+| Piano keys | Notes 48–72 | 1 |
+| Drum pads | Notes 36–43 | 10 |
+| Parameter knobs and dials | CC 20–25 | 1 |
+| Joystick | CC 1 | 1 |
+| Octave, program, and bank buttons | CC 110–115 | 1 |
+
+Mappings can be exported as JSON, edited externally, and loaded back into the application.
 
 ## Project structure
 
 ```text
 app/
 ├── components/
-│   ├── ControllerApp.tsx       # Application layout
-│   ├── ControllerSvg.tsx       # Interactive SVG hardware surface
-│   └── InspectorPanel.tsx      # Selection, MIDI, and mapping controls
+│   ├── ControllerApp.tsx       # Main application layout
+│   ├── ControllerSvg.tsx       # Interactive hardware surface
+│   └── InspectorPanel.tsx      # MIDI, mapping, and control details
 ├── lib/
-│   └── controller-data.ts      # Types and mock default mappings
+│   └── controller-data.ts      # Control types and default mappings
 ├── store/
-│   └── controller-store.tsx    # Central reducer, Web MIDI, JSON I/O
-├── globals.css                 # Responsive visual system
-├── layout.tsx                  # Metadata and app shell
-└── page.tsx                    # Route entry point
+│   └── controller-store.tsx    # Central state, Web MIDI, and JSON I/O
+├── globals.css                 # Visual system and responsive layout
+├── layout.tsx                  # Metadata and document shell
+└── page.tsx                    # Application route
 ```
 
-## Default MIDI mapping
+## Web MIDI notes
 
-- Keys: notes 48–72 on channel 1
-- Pads: notes 36–43 on channel 10
-- Parameter knobs, selector, and volume: CC 20–25 on channel 1
-- Joystick: CC 1 on channel 1
-- Octave/program/bank buttons: CC 110–115 on channel 1
+Web MIDI requires explicit browser permission. Outside `localhost`, the application must be served through HTTPS. Browser support varies, so Chromium-based browsers are recommended for physical-device testing.
 
-Web MIDI requires permission and a secure context when the app is not running on localhost.
+## Roadmap
+
+- Bidirectional synchronization with physical hardware
+- User-editable control assignments in the inspector
+- Preset and program management
+- MIDI output support
+- DAW and synthesizer integration profiles
+
+## License
+
+Add a license before distributing or accepting external contributions.
