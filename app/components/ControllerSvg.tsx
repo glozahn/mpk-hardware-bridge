@@ -159,8 +159,9 @@ export function ControllerSvg() {
       <g className="display-module" role="button" tabIndex={0} onClick={() => dispatch({ type: "SELECT", id: "display" })}>
         <rect x="744" y="42" width="140" height="57" rx="4" className="display-shell" />
         <rect x="755" y="51" width="118" height="39" rx="2" className="display-screen" />
-        <text x="814" y="67" textAnchor="middle" className="screen-logo">MPK</text>
-        <text x="814" y="82" textAnchor="middle" className="screen-main">{String(byId("display").value).padStart(3, "0")} · CH 1</text>
+        <text x="814" y="67" textAnchor="middle" className="screen-logo">AKAI</text>
+        <text x="814" y="78" textAnchor="middle" className="screen-brand-sub">PROFESSIONAL</text>
+        <text x="814" y="87" textAnchor="middle" className="screen-main">{String(byId("display").value).padStart(3, "0")} · CH 1</text>
       </g>
 
       <g className="center-buttons">
@@ -179,7 +180,7 @@ export function ControllerSvg() {
         <circle cx="1090" cy="220" r="6" fill="#0a0b0c" stroke="#323436" />
       </g>
 
-      <text x="34" y="316" className="mpk-logo">MPK <tspan fontWeight="300">mini play</tspan></text>
+      <text x="34" y="316" className="mpk-logo"><tspan className="mpk-heavy">MPK</tspan><tspan className="mpk-light"> mini play</tspan></text>
       <text x="28" y="335" className="keyboard-functions">1/4　　 1/4T　　 1/8　　 1/8T　　 1/16　　 1/16T　　 UP　 DOWN　 EXCL　 INCL　 ORDER　 RAND　 LATCH　 ARP OCT 1　 ARP OCT 2　 ARP OCT 3　 ARP OCT 4　 SWING</text>
 
       <g transform="translate(30 342)">

@@ -102,6 +102,8 @@ kbd { padding: 4px 6px; margin-right: 6px; border: 1px solid #34373b; border-rad
 
 /* Faithful compact-hardware details */
 .hardware-faithful .hardware-label { fill: #f1f1ef; font-size: 8px; font-weight: 800; letter-spacing: .02em; }
+.hardware-faithful .joystick-stick { fill: url(#redStick); stroke: #ff5b61; stroke-width: 2.5; }
+.hardware-faithful .joystick-control.is-active .joystick-stick { fill: url(#redStick); }
 .hardware-faithful .knob-min { fill: #d0d1d0; font-size: 5px; font-weight: 700; }
 .hardware-faithful .knob-body { fill: #111214; stroke: #54575a; stroke-width: 2; }
 .hardware-faithful .knob-indicator { stroke: #f4f4f2; stroke-width: 3; }
@@ -115,10 +117,13 @@ kbd { padding: 4px 6px; margin-right: 6px; border: 1px solid #34373b; border-rad
 .hardware-faithful .display-shell { fill: #090a0b; stroke: #4d5053; }
 .hardware-faithful .display-screen { fill: #d6ece7; stroke: #0d1111; }
 .hardware-faithful .screen-logo { fill: #182e35; font-size: 13px; font-weight: 950; font-style: italic; letter-spacing: -.08em; }
-.hardware-faithful .screen-main { fill: #25484b; font-size: 7px; }
+.hardware-faithful .screen-brand-sub { fill: #315356; font-size: 4px; font-weight: 800; letter-spacing: .12em; }
+.hardware-faithful .screen-main { fill: #25484b; font-size: 5px; }
 .akai-logo { fill: #f0f0ee; font-size: 27px; font-weight: 950; font-style: italic; letter-spacing: -.08em; }
 .akai-sub { fill: #f0f0ee; font-size: 7px; font-weight: 800; letter-spacing: .12em; }
-.mpk-logo { fill: #f0f0ee; font-size: 29px; font-weight: 800; letter-spacing: -.07em; }
+.mpk-logo { fill: #f0f0ee; font-size: 29px; letter-spacing: -.07em; }
+.mpk-heavy { font-weight: 950; }
+.mpk-light { font-weight: 300; font-style: italic; letter-spacing: -.04em; }
 .keyboard-functions { fill: #e3e3e1; font-size: 6px; font-weight: 700; letter-spacing: .02em; }
 .hardware-faithful .white-key-shape { fill: #f4f3ef; stroke: #858789; stroke-width: 1.5; }
 .hardware-faithful .black-key-shape { fill: #111315; stroke: #333537; stroke-width: 2; }
